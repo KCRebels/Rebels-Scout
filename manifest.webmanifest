@@ -1,0 +1,18 @@
+{
+  "name": "Rebels Scout",
+  "short_name": "Rebels Scout",
+  "description": "Kansas City Rebels scouting reports",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#e20b17",
+  "theme_color": "#e20b17",
+  "icons": [
+    {
+      "src": "/rebels-scout-logo%281%29.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
