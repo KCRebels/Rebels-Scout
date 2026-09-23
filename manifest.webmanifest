@@ -1,7 +1,7 @@
 {
   "name": "Rebels Scout",
   "short_name": "Rebels Scout",
-  "description": "See the Player. Know the Potential.",
+  "description": "Performance in Perspective",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
