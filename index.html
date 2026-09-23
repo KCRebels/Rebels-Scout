@@ -1,19 +1,29 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Rebels Scout</title>
-<meta name="theme-color" content="#e20b17">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Rebels Scout">
-<link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" type="image/png" href="/rebels-scout-logo%281%29.png">
-<link rel="apple-touch-icon" href="/rebels-scout-logo%281%29.png">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rebels Scout | Kansas City Rebels</title><meta name="theme-color" content="#e20b17">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Rebels Scout">
+<link rel="manifest" href="/manifest.webmanifest"><link rel="icon" type="image/png" href="/rebels-scout-logo%281%29.png"><link rel="apple-touch-icon" href="/rebels-scout-logo%281%29.png">
 <style>
-body{margin:0;background:#101010;min-height:100vh;display:grid;place-items:center}
-img{display:block;width:min(70vw,280px);border-radius:24%}
-</style>
-</head>
-<body><main><img src="/rebels-scout-logo%281%29.png" alt="Rebels Scout"></main></body>
-</html>
+*{box-sizing:border-box}body{margin:0;background:#111;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}main{width:min(900px,calc(100% - 32px));margin:auto;padding:24px 0 60px}header{text-align:center;padding:8px 0 25px}header img{width:116px;height:116px;object-fit:cover;border-radius:23px}h1{font-size:clamp(24px,5vw,34px);margin:13px 0 4px}p{color:#ccc;margin:0}h2{font-size:22px;margin:26px 0 15px}.teams{display:grid;gap:11px}.team{display:block;width:100%;padding:18px;border-radius:13px;border:1px solid #525252;font-size:17px;font-weight:800;text-align:left}.disabled{background:#2a2a2a;color:#888;border-color:#444;cursor:not-allowed}.enabled{background:#d80d1c;color:#fff;text-decoration:none;border-color:#fa3947}.enabled:hover,.enabled:focus-visible{background:#f10c20;outline:2px solid white;outline-offset:2px}.team small{display:block;font-weight:500;font-size:12px;margin-top:5px}.roster{margin-top:32px;scroll-margin-top:20px}.players{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px}.player{display:flex;flex-direction:column;overflow:hidden;background:#242424;color:#fff;text-decoration:none;border:1px solid #555;border-radius:14px}.player:hover,.player:focus-visible{border-color:#fa3947;outline:2px solid #fa3947}.player img,.placeholder{width:100%;aspect-ratio:1;object-fit:cover;object-position:center 30%;display:grid;place-items:center}.placeholder{background:linear-gradient(140deg,#353535,#191919);color:#aaa;font-size:48px;font-weight:800}.player strong{font-size:15px;text-align:center;padding:12px 6px;min-height:58px;display:grid;place-items:center}@media(max-width:450px){.players{grid-template-columns:repeat(2,minmax(0,1fr))}.team{font-size:15px;padding:15px}}
+</style></head><body><main>
+<header><img src="/rebels-scout-logo%281%29.png" alt="Rebels Scout logo"><h1>Rebels Scout</h1><p>Select a team</p></header>
+<nav class="teams" aria-label="Kansas City Rebels teams">
+<div class="team disabled" aria-disabled="true">KC Rebels 18U National Mayhugh/Olsen<small>Coming soon</small></div>
+<div class="team disabled" aria-disabled="true">KC Rebels 18U Regional Jenkins<small>Coming soon</small></div>
+<div class="team disabled" aria-disabled="true">KC Rebels 16U National Olsen<small>Coming soon</small></div>
+<a class="team enabled" href="#lickel-roster">KC Rebels 16U Regional Lickel<small>View players →</small></a>
+<div class="team disabled" aria-disabled="true">KC Rebels 16U Frans<small>Coming soon</small></div>
+</nav><section class="roster" id="lickel-roster"><h2>KC Rebels 16U Regional Lickel</h2><div class="players"><a class="player" href="/aniesa-rohleder/"><span class="placeholder" aria-hidden="true">AR</span><strong>Aniesa Rohleder</strong></a>
+<a class="player" href="/brooklyn-gering/"><img src="/player-photos/brooklyn-2026.jpg" alt="Brooklyn Gering"><strong>Brooklyn Gering</strong></a>
+<a class="player" href="/brynna-peter/"><span class="placeholder" aria-hidden="true">BP</span><strong>Brynna Peter</strong></a>
+<a class="player" href="/matti-hardy/"><span class="placeholder" aria-hidden="true">MH</span><strong>Matti Hardy</strong></a>
+<a class="player" href="/claire-jack/"><span class="placeholder" aria-hidden="true">CJ</span><strong>Claire Jack</strong></a>
+<a class="player" href="/hailey-marsh/"><span class="placeholder" aria-hidden="true">HM</span><strong>Hailey Marsh</strong></a>
+<a class="player" href="/megan-ryan/"><span class="placeholder" aria-hidden="true">MR</span><strong>Megan Ryan</strong></a>
+<a class="player" href="/tayte-stepps/"><span class="placeholder" aria-hidden="true">TS</span><strong>Tayte Stepps</strong></a>
+<a class="player" href="/lakyn-farley/"><span class="placeholder" aria-hidden="true">LF</span><strong>Lakyn Farley</strong></a>
+<a class="player" href="/lydia-copeland/"><span class="placeholder" aria-hidden="true">LC</span><strong>Lydia Copeland</strong></a>
+<a class="player" href="/maleah-pena/"><span class="placeholder" aria-hidden="true">MP</span><strong>Maleah Pena</strong></a>
+<a class="player" href="/makenna-whitaker/"><span class="placeholder" aria-hidden="true">MW</span><strong>Makenna Whitaker</strong></a>
+<a class="player" href="/maia-waddell/"><span class="placeholder" aria-hidden="true">MW</span><strong>Maia Waddell</strong></a></div></section>
+</main></body></html>
