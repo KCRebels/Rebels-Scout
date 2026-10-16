@@ -1,0 +1,101 @@
+name: Update Rebels Scout stats
+
+on:
+  push:
+    paths:
+      - '.github/workflows/update-rebels-scout-stats.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Update player stat tiles
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          stats = {
+            'aniesa-rohleder': {'pa':17,'decision':'90%','first':'94%','two':'94%','hhb':'17%','avg':'.462','obp':'.588','k':'6%','decision_n':70,'decision_counts':[63,0,7,1],'first_n':16,'first_counts':[15,0,1],'two_n':8,'two_counts':[7,1,0],'hhb_popup':['17%','8%','1.000','1.000']},
+            'brooklyn-gering': {'pa':11,'decision':'82%','first':'80%','two':'83%','hhb':'43%','avg':'.300','obp':'.364','k':'27%','decision_n':31,'decision_counts':[25,1,5,5],'first_n':10,'first_counts':[8,0,2],'two_n':6,'two_counts':[5,0,1],'hhb_popup':['43%','14%','.333','.000']},
+            'brynna-peter': {'pa':6,'decision':'83%','first':'80%','two':'75%','hhb':'0%','avg':'.500','obp':'.667','k':'17%','decision_n':18,'decision_counts':[15,0,3,4],'first_n':5,'first_counts':[4,0,1],'two_n':2,'two_counts':[1,1,0],'hhb_popup':['0%','33%','—','.000']},
+            'claire-jack': {'pa':5,'decision':'84%','first':'60%','two':'100%','hhb':'50%','avg':'.333','obp':'.600','k':'20%','decision_n':19,'decision_counts':[16,0,3,3],'first_n':5,'first_counts':[3,0,2],'two_n':4,'two_counts':[4,0,0],'hhb_popup':['50%','50%','1.000','.000']},
+            'hailey-marsh': {'pa':18,'decision':'95%','first':'100%','two':'82%','hhb':'10%','avg':'.471','obp':'.500','k':'39%','decision_n':40,'decision_counts':[38,0,2,30],'first_n':15,'first_counts':[15,0,0],'two_n':11,'two_counts':[9,0,2],'hhb_popup':['10%','0%','1.000','—']},
+            'lakyn-farley': {'pa':9,'decision':'73%','first':'75%','two':'100%','hhb':'60%','avg':'.250','obp':'.333','k':'33%','decision_n':31,'decision_counts':[21,3,7,8],'first_n':8,'first_counts':[6,0,2],'two_n':5,'two_counts':[5,0,0],'hhb_popup':['60%','0%','.667','—']},
+            'lydia-copeland': {'pa':16,'decision':'92%','first':'86%','two':'86%','hhb':'14%','avg':'.250','obp':'.438','k':'31%','decision_n':51,'decision_counts':[47,0,4,14],'first_n':14,'first_counts':[12,0,2],'two_n':7,'two_counts':[6,0,1],'hhb_popup':['14%','14%','1.000','1.000']},
+            'maia-waddell': {'pa':20,'decision':'98%','first':'100%','two':'94%','hhb':'0%','avg':'.316','obp':'.350','k':'20%','decision_n':40,'decision_counts':[39,0,1,26],'first_n':19,'first_counts':[19,0,0],'two_n':8,'two_counts':[7,1,0],'hhb_popup':['0%','0%','—','—']},
+            'makenna-whitaker': {'pa':8,'decision':'74%','first':'75%','two':'67%','hhb':'20%','avg':'.375','obp':'.375','k':'38%','decision_n':21,'decision_counts':[15,1,5,0],'first_n':8,'first_counts':[6,0,2],'two_n':3,'two_counts':[2,0,1],'hhb_popup':['20%','0%','1.000','—']},
+            'maleah-pena': {'pa':8,'decision':'71%','first':'62%','two':'100%','hhb':'0%','avg':'.286','obp':'.375','k':'12%','decision_n':24,'decision_counts':[17,0,7,0],'first_n':8,'first_counts':[5,0,3],'two_n':2,'two_counts':[2,0,0],'hhb_popup':['0%','33%','—','.500']},
+            'matti-hardy': {'pa':19,'decision':'74%','first':'74%','two':'94%','hhb':'7%','avg':'.333','obp':'.368','k':'16%','decision_n':56,'decision_counts':[40,3,13,4],'first_n':19,'first_counts':[14,0,5],'two_n':8,'two_counts':[7,1,0],'hhb_popup':['7%','20%','1.000','.000']},
+            'megan-ryan': {'pa':18,'decision':'83%','first':'89%','two':'90%','hhb':'9%','avg':'.267','obp':'.389','k':'22%','decision_n':72,'decision_counts':[58,4,10,0],'first_n':18,'first_counts':[16,0,2],'two_n':10,'two_counts':[9,0,1],'hhb_popup':['9%','27%','1.000','.333']},
+            'tayte-stepps': {'pa':11,'decision':'77%','first':'60%','two':'83%','hhb':'38%','avg':'.100','obp':'.182','k':'18%','decision_n':41,'decision_counts':[31,1,9,7],'first_n':10,'first_counts':[6,0,4],'two_n':6,'two_counts':[4,2,0],'hhb_popup':['38%','38%','.333','.000']},
+          }
+
+          def sub1(text, pattern, repl, label, flags=0):
+              text2, n = re.subn(pattern, repl, text, count=1, flags=flags)
+              if n != 1:
+                  raise RuntimeError(f'{label}: expected 1 replacement, got {n}')
+              return text2
+
+          for slug, m in stats.items():
+              path = Path(slug) / 'index.html'
+              text = path.read_text(encoding='utf-8')
+
+              text = sub1(text, r'(<div class="asof" id="performanceUpdated">2026–27 full season<br>Updated )[^<]+(<div class="live-status" id="liveStatus">Snapshot · )[^<]+(</div></div>)', rf'\1Oct. 10, 2026\2Oct. 10, 2026\3', f'{slug} updated date')
+              text = sub1(text, r'(<span data-hit="PA">)\d+(</span>)', rf'\g<1>{m["pa"]}\2', f'{slug} PA')
+              text = sub1(text, r'(<strong data-hit="DECISION">)[^<]*(</strong>)', rf'\g<1>{m["decision"]}\2', f'{slug} decision tile')
+              text = sub1(text, r'(<strong data-hit="ABA"><span style="font-size:\.7em">)1P [^<]+<br>2K [^<]+(</span></strong>)', rf'\g<1>1P {m["first"]}<br>2K {m["two"]}\2', f'{slug} ABA tile')
+              text = sub1(text, r'aria-label="ABA: first pitch [^"]+Open details"', f'aria-label="ABA: first pitch {m["first"].replace("%"," percent")}, two-strike {m["two"].replace("%"," percent")}. Open details"', f'{slug} ABA aria')
+              text = sub1(text, r'(<strong data-hit="HHB">)[^<]*(</strong>)', rf'\g<1>{m["hhb"]}\2', f'{slug} HHB tile')
+              text = sub1(text, r'(<strong data-hit="AVG">)[^<]*(</strong>)', rf'\g<1>{m["avg"]}\2', f'{slug} AVG tile')
+              text = sub1(text, r'(<strong data-hit="OBP">)[^<]*(</strong>)', rf'\g<1>{m["obp"]}\2', f'{slug} OBP tile')
+              text = sub1(text, r'(<strong data-hit="K%">)[^<]*(</strong>)', rf'\g<1>{m["k"]}\2', f'{slug} K tile')
+
+              text = sub1(text, r'(<b data-popup-value="decision">)[^<]*(</b><span>)\d+( scored decisions</span>)', rf'\g<1>{m["decision"]}\2{m["decision_n"]}\3', f'{slug} decision popup summary')
+              dc = m['decision_counts']
+              text = sub1(text, r"\[\['Good',\d+\],\['Minor Poor',\d+\],\['Poor',\d+\],\['Not Scored',\d+\]\]", f"[['Good',{dc[0]}],['Minor Poor',{dc[1]}],['Poor',{dc[2]}],['Not Scored',{dc[3]}]]", f'{slug} decision popup counts')
+
+              text = sub1(text, r'<div class="pc-aba-summary"><div><b>[^<]+</b><span>1ST PITCH APPROACH</span></div><div><b>[^<]+</b><span>2-STRIKE APPROACH</span></div></div>', f'<div class="pc-aba-summary"><div><b>{m["first"]}</b><span>1ST PITCH APPROACH</span></div><div><b>{m["two"]}</b><span>2-STRIKE APPROACH</span></div></div>', f'{slug} ABA popup summary')
+              fc, tc = m['first_counts'], m['two_counts']
+              arrays = [f"[['GOOD',{fc[0]}],['MINOR',{fc[1]}],['POOR',{fc[2]}]]", f"[['GOOD',{tc[0]}],['MINOR',{tc[1]}],['POOR',{tc[2]}]]"]
+              idx = 0
+              def replace_aba_counts(match):
+                  nonlocal_box[0] += 1
+                  return arrays[nonlocal_box[0]-1]
+              nonlocal_box = [0]
+              text, n = re.subn(r"\[\['GOOD',\d+\],\['MINOR',\d+\],\['POOR',\d+\]\]", replace_aba_counts, text, count=2)
+              if n != 2:
+                  raise RuntimeError(f'{slug} ABA popup counts: expected 2 replacements, got {n}')
+              text = sub1(text, r'1P: \d+ scored first pitches · 2K: \d+ plate appearances that reached two strikes\. Good = full credit · Minor = half credit · Poor = zero\. [^<]*HotB backup\.', f'1P: {m["first_n"]} scored first pitches · 2K: {m["two_n"]} plate appearances that reached two strikes. Good = full credit · Minor = half credit · Poor = zero. October 16, 2026 HotB backup.', f'{slug} ABA popup note')
+
+              hp = m['hhb_popup']
+              hhb_values = ','.join(repr(v) for v in hp)
+              text = sub1(text, r"(\['HHB%','WEAK%','AVG ON HHB','AVG ON WEAK'\]\.map\(\(label,i\)=>'<div class=\"pc-hhb-stat\"><b>'\+\[)[^\]]+(\]\[i\]\+'</b>)", rf'\g<1>{hhb_values}\2', f'{slug} HHB popup values')
+
+              path.write_text(text, encoding='utf-8')
+
+              verify = path.read_text(encoding='utf-8')
+              for expected in [f'data-hit="PA">{m["pa"]}</span>', f'data-hit="DECISION">{m["decision"]}</strong>', f'1P {m["first"]}<br>2K {m["two"]}', f'data-hit="HHB">{m["hhb"]}</strong>', f'data-hit="AVG">{m["avg"]}</strong>', f'data-hit="OBP">{m["obp"]}</strong>', f'data-hit="K%">{m["k"]}</strong>']:
+                  if expected not in verify:
+                      raise RuntimeError(f'{slug} verification failed: {expected}')
+
+          workflow = Path('.github/workflows/update-rebels-scout-stats.yml')
+          if workflow.exists():
+              workflow.unlink()
+          PY
+      - name: Commit updated stats
+        shell: bash
+        run: |
+          git config user.name "Rebels Scout Updater"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "Refresh Rebels Scout hitting stats from Oct 16 HotB backup"
+          git push
