@@ -1,3 +1,4 @@
+# Triggered after workflow registration on main
 name: Update Rebels Scout stats
 
 on:
@@ -65,7 +66,6 @@ jobs:
               text = sub1(text, r'<div class="pc-aba-summary"><div><b>[^<]+</b><span>1ST PITCH APPROACH</span></div><div><b>[^<]+</b><span>2-STRIKE APPROACH</span></div></div>', f'<div class="pc-aba-summary"><div><b>{m["first"]}</b><span>1ST PITCH APPROACH</span></div><div><b>{m["two"]}</b><span>2-STRIKE APPROACH</span></div></div>', f'{slug} ABA popup summary')
               fc, tc = m['first_counts'], m['two_counts']
               arrays = [f"[['GOOD',{fc[0]}],['MINOR',{fc[1]}],['POOR',{fc[2]}]]", f"[['GOOD',{tc[0]}],['MINOR',{tc[1]}],['POOR',{tc[2]}]]"]
-              idx = 0
               def replace_aba_counts(match):
                   nonlocal_box[0] += 1
                   return arrays[nonlocal_box[0]-1]
