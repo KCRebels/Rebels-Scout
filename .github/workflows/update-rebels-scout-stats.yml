@@ -22,76 +22,66 @@ jobs:
           from pathlib import Path
           import re
 
-          stats = {
-            'aniesa-rohleder': {'pa':17,'decision':'90%','first':'94%','two':'94%','hhb':'17%','avg':'.462','obp':'.588','k':'6%','decision_n':70,'decision_counts':[63,0,7,1],'first_n':16,'first_counts':[15,0,1],'two_n':8,'two_counts':[7,1,0],'hhb_popup':['17%','8%','1.000','1.000']},
-            'brooklyn-gering': {'pa':11,'decision':'82%','first':'80%','two':'83%','hhb':'43%','avg':'.300','obp':'.364','k':'27%','decision_n':31,'decision_counts':[25,1,5,5],'first_n':10,'first_counts':[8,0,2],'two_n':6,'two_counts':[5,0,1],'hhb_popup':['43%','14%','.333','.000']},
-            'brynna-peter': {'pa':6,'decision':'83%','first':'80%','two':'75%','hhb':'0%','avg':'.500','obp':'.667','k':'17%','decision_n':18,'decision_counts':[15,0,3,4],'first_n':5,'first_counts':[4,0,1],'two_n':2,'two_counts':[1,1,0],'hhb_popup':['0%','33%','—','.000']},
-            'claire-jack': {'pa':5,'decision':'84%','first':'60%','two':'100%','hhb':'50%','avg':'.333','obp':'.600','k':'20%','decision_n':19,'decision_counts':[16,0,3,3],'first_n':5,'first_counts':[3,0,2],'two_n':4,'two_counts':[4,0,0],'hhb_popup':['50%','50%','1.000','.000']},
-            'hailey-marsh': {'pa':18,'decision':'95%','first':'100%','two':'82%','hhb':'10%','avg':'.471','obp':'.500','k':'39%','decision_n':40,'decision_counts':[38,0,2,30],'first_n':15,'first_counts':[15,0,0],'two_n':11,'two_counts':[9,0,2],'hhb_popup':['10%','0%','1.000','—']},
-            'lakyn-farley': {'pa':9,'decision':'73%','first':'75%','two':'100%','hhb':'60%','avg':'.250','obp':'.333','k':'33%','decision_n':31,'decision_counts':[21,3,7,8],'first_n':8,'first_counts':[6,0,2],'two_n':5,'two_counts':[5,0,0],'hhb_popup':['60%','0%','.667','—']},
-            'lydia-copeland': {'pa':16,'decision':'92%','first':'86%','two':'86%','hhb':'14%','avg':'.250','obp':'.438','k':'31%','decision_n':51,'decision_counts':[47,0,4,14],'first_n':14,'first_counts':[12,0,2],'two_n':7,'two_counts':[6,0,1],'hhb_popup':['14%','14%','1.000','1.000']},
-            'maia-waddell': {'pa':20,'decision':'98%','first':'100%','two':'94%','hhb':'0%','avg':'.316','obp':'.350','k':'20%','decision_n':40,'decision_counts':[39,0,1,26],'first_n':19,'first_counts':[19,0,0],'two_n':8,'two_counts':[7,1,0],'hhb_popup':['0%','0%','—','—']},
-            'makenna-whitaker': {'pa':8,'decision':'74%','first':'75%','two':'67%','hhb':'20%','avg':'.375','obp':'.375','k':'38%','decision_n':21,'decision_counts':[15,1,5,0],'first_n':8,'first_counts':[6,0,2],'two_n':3,'two_counts':[2,0,1],'hhb_popup':['20%','0%','1.000','—']},
-            'maleah-pena': {'pa':8,'decision':'71%','first':'62%','two':'100%','hhb':'0%','avg':'.286','obp':'.375','k':'12%','decision_n':24,'decision_counts':[17,0,7,0],'first_n':8,'first_counts':[5,0,3],'two_n':2,'two_counts':[2,0,0],'hhb_popup':['0%','33%','—','.500']},
-            'matti-hardy': {'pa':19,'decision':'74%','first':'74%','two':'94%','hhb':'7%','avg':'.333','obp':'.368','k':'16%','decision_n':56,'decision_counts':[40,3,13,4],'first_n':19,'first_counts':[14,0,5],'two_n':8,'two_counts':[7,1,0],'hhb_popup':['7%','20%','1.000','.000']},
-            'megan-ryan': {'pa':18,'decision':'83%','first':'89%','two':'90%','hhb':'9%','avg':'.267','obp':'.389','k':'22%','decision_n':72,'decision_counts':[58,4,10,0],'first_n':18,'first_counts':[16,0,2],'two_n':10,'two_counts':[9,0,1],'hhb_popup':['9%','27%','1.000','.333']},
-            'tayte-stepps': {'pa':11,'decision':'77%','first':'60%','two':'83%','hhb':'38%','avg':'.100','obp':'.182','k':'18%','decision_n':41,'decision_counts':[31,1,9,7],'first_n':10,'first_counts':[6,0,4],'two_n':6,'two_counts':[4,2,0],'hhb_popup':['38%','38%','.333','.000']},
-          }
+          S={
+          'aniesa-rohleder':(17,'90%','94%','94%','17%','.462','.588','6%',70,[63,0,7,1],16,[15,0,1],8,[7,1,0],['17%','8%','1.000','1.000']),
+          'brooklyn-gering':(11,'82%','80%','83%','43%','.300','.364','27%',31,[25,1,5,5],10,[8,0,2],6,[5,0,1],['43%','14%','.333','.000']),
+          'brynna-peter':(6,'83%','80%','75%','0%','.500','.667','17%',18,[15,0,3,4],5,[4,0,1],2,[1,1,0],['0%','33%','—','.000']),
+          'claire-jack':(5,'84%','60%','100%','50%','.333','.600','20%',19,[16,0,3,3],5,[3,0,2],4,[4,0,0],['50%','50%','1.000','.000']),
+          'hailey-marsh':(18,'95%','100%','82%','10%','.471','.500','39%',40,[38,0,2,30],15,[15,0,0],11,[9,0,2],['10%','0%','1.000','—']),
+          'lakyn-farley':(9,'73%','75%','100%','60%','.250','.333','33%',31,[21,3,7,8],8,[6,0,2],5,[5,0,0],['60%','0%','.667','—']),
+          'lydia-copeland':(16,'92%','86%','86%','14%','.250','.438','31%',51,[47,0,4,14],14,[12,0,2],7,[6,0,1],['14%','14%','1.000','1.000']),
+          'maia-waddell':(20,'98%','100%','94%','0%','.316','.350','20%',40,[39,0,1,26],19,[19,0,0],8,[7,1,0],['0%','0%','—','—']),
+          'makenna-whitaker':(8,'74%','75%','67%','20%','.375','.375','38%',21,[15,1,5,0],8,[6,0,2],3,[2,0,1],['20%','0%','1.000','—']),
+          'maleah-pena':(8,'71%','62%','100%','0%','.286','.375','12%',24,[17,0,7,0],8,[5,0,3],2,[2,0,0],['0%','33%','—','.500']),
+          'matti-hardy':(19,'74%','74%','94%','7%','.333','.368','16%',56,[40,3,13,4],19,[14,0,5],8,[7,1,0],['7%','20%','1.000','.000']),
+          'megan-ryan':(18,'83%','89%','90%','9%','.267','.389','22%',72,[58,4,10,0],18,[16,0,2],10,[9,0,1],['9%','27%','1.000','.333']),
+          'tayte-stepps':(11,'77%','60%','83%','38%','.100','.182','18%',41,[31,1,9,7],10,[6,0,4],6,[4,2,0],['38%','38%','.333','.000'])}
 
-          def one(text, pattern, repl, label, flags=re.S):
-              out,n=re.subn(pattern,repl,text,count=1,flags=flags)
-              if n!=1: raise RuntimeError(f'{label}: expected 1 replacement, got {n}')
+          def once(text,pat,fn,label):
+              out,n=re.subn(pat,fn,text,count=1,flags=re.S)
+              if n!=1: raise RuntimeError(f'{label}: {n}')
               return out
 
-          for slug,m in stats.items():
-              p=Path(slug)/'index.html'
-              text=p.read_text(encoding='utf-8')
+          for slug,v in S.items():
+              pa,decision,first,two,hhb,avg,obp,k,dn,dc,fn,fc,tn,tc,hp=v
+              p=Path(slug)/'index.html'; text=p.read_text(encoding='utf-8')
               text=text.replace('Updated Sept. 20, 2026','Updated Oct. 10, 2026').replace('Snapshot · Sept. 20, 2026','Snapshot · Oct. 10, 2026')
-              text=re.sub(r'HotB · (?:<span data-hit="PA">)?\d+(?:</span>)? PA',f'HotB · <span data-hit="PA">{m["pa"]}</span> PA',text,count=1)
+              text=once(text,r'HotB · (?:<span data-hit="PA">)?\d+(?:</span>)? PA',lambda _:f'HotB · <span data-hit="PA">{pa}</span> PA',slug+' PA')
+              for metric,val in [('decision',decision),('hhb',hhb)]:
+                  pat=rf'(<div class="scout-hit-tile scout-hit-red"[^>]*data-metric="{metric}"[^>]*>.*?<strong(?: data-hit="[^"]+")?>).*?(</strong>)'
+                  text=once(text,pat,lambda m,val=val:m.group(1)+val+m.group(2),slug+' '+metric)
+              pat=r'(<div class="scout-hit-tile scout-hit-red"[^>]*data-metric="aba"[^>]*>.*?<strong(?: data-hit="ABA")?>).*?(</strong>)'
+              text=once(text,pat,lambda m:m.group(1)+f'<span style="font-size:.7em">1P {first}<br>2K {two}</span>'+m.group(2),slug+' aba')
+              text=re.sub(r'aria-label="ABA:[^"]*"',f'aria-label="ABA: first pitch {first}, two-strike {two}. Open details"',text,count=1)
+              for label,val in [('AVG',avg),('OBP',obp),('K%',k)]:
+                  pat=rf'(<span[^>]*>{re.escape(label)}</span><strong(?: data-hit="[^"]+")?>)[^<]*(</strong>)'
+                  text=once(text,pat,lambda m,val=val:m.group(1)+val+m.group(2),slug+' '+label)
 
-              def red(metric,value):
-                  nonlocal_text[0]=one(nonlocal_text[0],rf'(<div class="scout-hit-tile scout-hit-red"[^>]*data-metric="{metric}"[^>]*>.*?<strong(?: data-hit="[^"]+")?>).*?(</strong>)',rf'\g<1>{value}\2',f'{slug} {metric}')
-              nonlocal_text=[text]
-              red('decision',m['decision'])
-              red('hhb',m['hhb'])
-              text=nonlocal_text[0]
-              text=one(text,r'(<div class="scout-hit-tile scout-hit-red"[^>]*data-metric="aba"[^>]*>.*?<strong(?: data-hit="ABA")?>).*?(</strong>)',rf'\g<1><span style="font-size:.7em">1P {m["first"]}<br>2K {m["two"]}</span>\2',f'{slug} aba')
-              text=re.sub(r'aria-label="ABA:[^"]*"',f'aria-label="ABA: first pitch {m["first"]}, two-strike {m["two"]}. Open details"',text,count=1)
-              for label,key in [('AVG','avg'),('OBP','obp'),('K%','k')]:
-                  text=one(text,rf'(<span[^>]*>{re.escape(label)}</span><strong(?: data-hit="[^"]+")?>)[^<]*(</strong>)',rf'\g<1>{m[key]}\2',f'{slug} {label}')
-
-              text=one(text,r'(<div class="pc-decision-summary"><b(?: data-popup-value="decision")?>)[^<]*(</b><span>)\d+( scored decisions</span>)',rf'\g<1>{m["decision"]}\2{m["decision_n"]}\3',f'{slug} decision popup')
-              dc=m['decision_counts']
-              text=one(text,r"\[\['Good',\d+\],\['Minor Poor',\d+\],\['Poor',\d+\],\['Not Scored',\d+\]\]",f"[['Good',{dc[0]}],['Minor Poor',{dc[1]}],['Poor',{dc[2]}],['Not Scored',{dc[3]}]]",f'{slug} decision counts')
-              text=one(text,r'<div class="pc-aba-summary"><div><b>[^<]+</b><span>1ST PITCH APPROACH</span></div><div><b>[^<]+</b><span>2-STRIKE APPROACH</span></div></div>',f'<div class="pc-aba-summary"><div><b>{m["first"]}</b><span>1ST PITCH APPROACH</span></div><div><b>{m["two"]}</b><span>2-STRIKE APPROACH</span></div></div>',f'{slug} aba popup')
-              fc,tc=m['first_counts'],m['two_counts']
-              arrays=[f"[['GOOD',{fc[0]}],['MINOR',{fc[1]}],['POOR',{fc[2]}]]",f"[['GOOD',{tc[0]}],['MINOR',{tc[1]}],['POOR',{tc[2]}]]"]
-              pos=[0]
-              def swap(_):
-                  v=arrays[pos[0]];pos[0]+=1;return v
-              text,n=re.subn(r"\[\['GOOD',\d+\],\['MINOR',\d+\],\['POOR',\d+\]\]",swap,text,count=2)
-              if n!=2: raise RuntimeError(f'{slug} ABA counts: {n}')
-              text=re.sub(r'1P: \d+ scored first pitches · 2K: \d+ plate appearances that reached two strikes\. Good = full credit · Minor = half credit · Poor = zero\. (?:September 20, 2026|October 16, 2026) HotB backup\.',f'1P: {m["first_n"]} scored first pitches · 2K: {m["two_n"]} plate appearances that reached two strikes. Good = full credit · Minor = half credit · Poor = zero. October 16, 2026 HotB backup.',text,count=1)
+              pat=r'(<div class="pc-decision-summary"><b(?: data-popup-value="decision")?>)[^<]*(</b><span>)\d+( scored decisions</span>)'
+              text=once(text,pat,lambda m:m.group(1)+decision+m.group(2)+str(dn)+m.group(3),slug+' decision popup')
+              text=once(text,r"\[\['Good',\d+\],\['Minor Poor',\d+\],\['Poor',\d+\],\['Not Scored',\d+\]\]",lambda _:f"[['Good',{dc[0]}],['Minor Poor',{dc[1]}],['Poor',{dc[2]}],['Not Scored',{dc[3]}]]",slug+' decision counts')
+              text=once(text,r'<div class="pc-aba-summary"><div><b>[^<]+</b><span>1ST PITCH APPROACH</span></div><div><b>[^<]+</b><span>2-STRIKE APPROACH</span></div></div>',lambda _:f'<div class="pc-aba-summary"><div><b>{first}</b><span>1ST PITCH APPROACH</span></div><div><b>{two}</b><span>2-STRIKE APPROACH</span></div></div>',slug+' ABA popup')
+              arr=[f"[['GOOD',{fc[0]}],['MINOR',{fc[1]}],['POOR',{fc[2]}]]",f"[['GOOD',{tc[0]}],['MINOR',{tc[1]}],['POOR',{tc[2]}]]"]; pos=[0]
+              def ac(_): r=arr[pos[0]];pos[0]+=1;return r
+              text,n=re.subn(r"\[\['GOOD',\d+\],\['MINOR',\d+\],\['POOR',\d+\]\]",ac,text,count=2)
+              if n!=2: raise RuntimeError(slug+' ABA counts')
+              text=re.sub(r'1P: \d+ scored first pitches · 2K: \d+ plate appearances that reached two strikes\. Good = full credit · Minor = half credit · Poor = zero\. (?:September 20, 2026|October 16, 2026) HotB backup\.',f'1P: {fn} scored first pitches · 2K: {tn} plate appearances that reached two strikes. Good = full credit · Minor = half credit · Poor = zero. October 16, 2026 HotB backup.',text,count=1)
               text=text.replace('September 20, 2026 HotB backup.','October 16, 2026 HotB backup.')
 
-              hp=m['hhb_popup']
-              pair=f"[['HHB%','{hp[0]}'],['WEAK%','{hp[1]}'],['AVG ON HHB','{hp[2]}'],['AVG ON WEAK','{hp[3]}']]"
-              text,n1=re.subn(r"\[\['HHB%','[^']*'\],\['WEAK%','[^']*'\],\['AVG ON HHB','[^']*'\],\['AVG ON WEAK','[^']*'\]\]",pair,text,count=1)
-              if not n1:
+              pairs=f"[['HHB%','{hp[0]}'],['WEAK%','{hp[1]}'],['AVG ON HHB','{hp[2]}'],['AVG ON WEAK','{hp[3]}']]"
+              text,n=re.subn(r"\[\['HHB%','[^']*'\],\['WEAK%','[^']*'\],\['AVG ON HHB','[^']*'\],\['AVG ON WEAK','[^']*'\]\]",pairs,text,count=1)
+              if n==0:
                   vals=','.join(repr(x) for x in hp)
-                  text,n2=re.subn(r"(?<=\['HHB%','WEAK%','AVG ON HHB','AVG ON WEAK'\]\.map\(\(label,i\)=>'<div class=\"pc-hhb-stat\"><b>'\+\[)[^\]]+(?=\]\[i\])",vals,text,count=1)
-                  if not n2: raise RuntimeError(f'{slug} HHB popup')
-
-              text=re.sub(r'(class="data-note">[^<]*HotB game data )(?:from Sept\. 20, 2026|through Oct\. 10, 2026)',r'\1through Oct. 10, 2026',text,count=1)
-              text=re.sub(r'(class="pc-note">Calculated from [^<]*saved HotB game data )(?:from September 20, 2026|through October 10, 2026)',r'\1through October 10, 2026',text,count=1)
+                  pat=r"(\['HHB%','WEAK%','AVG ON HHB','AVG ON WEAK'\]\.map\(\(label,i\)=>'<div class=\"pc-hhb-stat\"><b>'\+\[)[^\]]+(\]\[i\])"
+                  text=once(text,pat,lambda m:m.group(1)+vals+m.group(2),slug+' HHB popup')
+              text=re.sub(r'(class="data-note">[^<]*HotB game data )(?:from Sept\. 20, 2026|through Oct\. 10, 2026)',lambda m:m.group(1)+'through Oct. 10, 2026',text,count=1)
+              text=re.sub(r'(class="pc-note">Calculated from [^<]*saved HotB game data )(?:from September 20, 2026|through October 10, 2026)',lambda m:m.group(1)+'through October 10, 2026',text,count=1)
               p.write_text(text,encoding='utf-8')
-
               check=p.read_text(encoding='utf-8')
-              must=[f'>{m["decision"]}</strong>',f'1P {m["first"]}<br>2K {m["two"]}',f'>{m["hhb"]}</strong>',f'>{m["avg"]}</strong>',f'>{m["obp"]}</strong>',f'>{m["k"]}</strong>',f'>{m["pa"]}</span> PA']
-              if not all(x in check for x in must): raise RuntimeError(f'{slug} verification failed')
+              need=[decision,f'1P {first}<br>2K {two}',hhb,avg,obp,k,f'>{pa}</span> PA']
+              if not all(x in check for x in need): raise RuntimeError(slug+' verification')
           PY
       - name: Commit updated stats
-        shell: bash
         run: |
           git config user.name "Rebels Scout Updater"
           git config user.email "actions@users.noreply.github.com"
