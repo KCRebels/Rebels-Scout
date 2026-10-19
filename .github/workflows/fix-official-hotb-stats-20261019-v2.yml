@@ -1,0 +1,70 @@
+name: Fix Rebels Scout official HotB stats v2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/fix-official-hotb-stats-20261019-v2.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch Scout pages to official HotB stats
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import ast,re
+          updates={
+          'aniesa-rohleder':{'PA':14,'AVG':'.273','OBP':'.429','Kpct':'21%','HHBpct':'12%'},
+          'brooklyn-gering':{'PA':12,'AVG':'.444','OBP':'.583','Kpct':'25%','HHBpct':'50%'},
+          'brynna-peter':{'PA':12,'AVG':'.300','OBP':'.417','Kpct':'8%','HHBpct':'22%'},
+          'hailey-marsh':{'PA':14,'AVG':'.636','OBP':'.714','Kpct':'7%','HHBpct':'0%'},
+          'lakyn-farley':{'PA':11,'AVG':'.250','OBP':'.455','Kpct':'36%','HHBpct':'0%'},
+          'lydia-copeland':{'PA':9,'AVG':'.429','OBP':'.556','Kpct':'33%','HHBpct':'50%'},
+          'maia-waddell':{'PA':14,'AVG':'.500','OBP':'.500','Kpct':'0%','HHBpct':'7%'},
+          'makenna-whitaker':{'PA':10,'AVG':'.200','OBP':'.200','Kpct':'30%','HHBpct':'14%'},
+          'maleah-pena':{'PA':8,'AVG':'.250','OBP':'.250','Kpct':'0%','HHBpct':'25%'},
+          'matti-hardy':{'PA':13,'AVG':'.545','OBP':'.615','Kpct':'8%','HHBpct':'30%'},
+          'megan-ryan':{'PA':11,'AVG':'.400','OBP':'.455','Kpct':'9%','HHBpct':'33%'},
+          'tayte-stepps':{'PA':10,'AVG':'.444','OBP':'.500','Kpct':'10%','HHBpct':'25%'}}
+          for slug,h in updates.items():
+              path=Path(slug)/'index.html'
+              text=path.read_text(encoding='utf-8')
+              text=re.sub(r'HotB · <span data-hit="PA">\d+</span> PA',f'HotB · <span data-hit="PA">{h["PA"]}</span> PA',text)
+              for label,key in [('AVG','AVG'),('OBP','OBP'),('K%','Kpct')]:
+                  pat=rf'(<span[^>]*>{re.escape(label)}</span><strong>)[^<]*(</strong>)'
+                  text=re.sub(pat,lambda m,k=key:m.group(1)+h[k]+m.group(2),text,count=1)
+              text=re.sub(r'(data-metric="hhb"[^>]*>.*?<strong>)[^<]*(</strong>)',lambda m:m.group(1)+h['HHBpct']+m.group(2),text,count=1,flags=re.S)
+              text=re.sub(r'<p class="data-note">.*?</p>',f'<p class="data-note">Hitting metrics are calculated from official HotB game data through Oct. 18, 2026; scrimmages are excluded from standard batting results.</p>',text,count=1,flags=re.S)
+              path.write_text(text,encoding='utf-8')
+          p=Path('scripts/inject_hotb_stats.py')
+          src=p.read_text(encoding='utf-8')
+          src=src.replace(",lambda m,k=key:m.group(1)+p[k]+m.group(2),1)",",lambda m,k=key:m.group(1)+p[k]+m.group(2))")
+          tree=ast.parse(src)
+          node=next(n for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='PLAYERS' for t in n.targets))
+          players=ast.literal_eval(node.value)
+          for slug,h in updates.items(): players[slug]['h'].update(h)
+          lines=src.splitlines();lines[node.lineno-1:node.end_lineno]=['PLAYERS='+repr(players)]
+          p.write_text('\n'.join(lines)+'\n',encoding='utf-8')
+          PY
+      - name: Commit corrected Scout stats
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/inject_hotb_stats.py */index.html
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "No changes needed"
+          else
+            git commit -m "Align Rebels Scout hitting stats with official HotB games"
+            git push
+          fi
