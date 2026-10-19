@@ -18,7 +18,19 @@ jobs:
         with:
           fetch-depth: 0
       - name: Refresh all player performance stats
-        run: python scripts/inject_hotb_stats.py
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/inject_hotb_stats.py')
+          s=p.read_text(encoding='utf-8')
+          old=",lambda m,k=key:m.group(1)+p[k]+m.group(2),1)"
+          new=",lambda m,k=key:m.group(1)+p[k]+m.group(2))"
+          if old not in s:
+              raise SystemExit('Expected pitching updater pattern not found')
+          p.write_text(s.replace(old,new),encoding='utf-8')
+          PY
+          python scripts/inject_hotb_stats.py
       - name: Commit refreshed player pages
         shell: bash
         run: |
