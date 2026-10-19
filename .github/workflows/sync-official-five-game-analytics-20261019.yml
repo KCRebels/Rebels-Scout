@@ -1,0 +1,83 @@
+name: Sync Scout five-game official analytics
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/sync-official-five-game-analytics-20261019.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Update Scout metrics to official HotB games only
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import ast,re
+
+          p=Path('scripts/inject_hotb_stats.py')
+          src=p.read_text(encoding='utf-8')
+          tree=ast.parse(src)
+          assign=next(n for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='PLAYERS' for t in n.targets))
+          players=ast.literal_eval(assign.value)
+
+          official={
+            'aniesa-rohleder': dict(decisionPct='90%',decisionN=62,decisionCounts={'GOOD':55,'MINOR':1,'POOR':6,'NOT_SCORED':11},firstPct='80%',firstN=10,firstCounts={'GOOD':8,'MINOR':0,'POOR':2},twoPct='95%',twoN=10,twoCounts={'GOOD':9,'MINOR':1,'POOR':0}),
+            'brooklyn-gering': dict(decisionPct='89%',decisionN=28,decisionCounts={'GOOD':25,'MINOR':0,'POOR':3,'NOT_SCORED':13},firstPct='88%',firstN=8,firstCounts={'GOOD':7,'MINOR':0,'POOR':1},twoPct='75%',twoN=4,twoCounts={'GOOD':3,'MINOR':0,'POOR':1}),
+            'brynna-peter': dict(decisionPct='78%',decisionN=18,decisionCounts={'GOOD':14,'MINOR':0,'POOR':4,'NOT_SCORED':18},firstPct='57%',firstN=7,firstCounts={'GOOD':4,'MINOR':0,'POOR':3},twoPct='100%',twoN=3,twoCounts={'GOOD':3,'MINOR':0,'POOR':0}),
+            'hailey-marsh': dict(decisionPct='100%',decisionN=19,decisionCounts={'GOOD':19,'MINOR':0,'POOR':0,'NOT_SCORED':28},firstPct='100%',firstN=9,firstCounts={'GOOD':9,'MINOR':0,'POOR':0},twoPct='100%',twoN=3,twoCounts={'GOOD':3,'MINOR':0,'POOR':0}),
+            'lakyn-farley': dict(decisionPct='79%',decisionN=42,decisionCounts={'GOOD':33,'MINOR':0,'POOR':9,'NOT_SCORED':12},firstPct='83%',firstN=6,firstCounts={'GOOD':5,'MINOR':0,'POOR':1},twoPct='88%',twoN=8,twoCounts={'GOOD':7,'MINOR':0,'POOR':1}),
+            'lydia-copeland': dict(decisionPct='75%',decisionN=28,decisionCounts={'GOOD':21,'MINOR':0,'POOR':7,'NOT_SCORED':8},firstPct='83%',firstN=6,firstCounts={'GOOD':5,'MINOR':0,'POOR':1},twoPct='86%',twoN=7,twoCounts={'GOOD':6,'MINOR':0,'POOR':1}),
+            'maia-waddell': dict(decisionPct='100%',decisionN=17,decisionCounts={'GOOD':17,'MINOR':0,'POOR':0,'NOT_SCORED':19},firstPct='100%',firstN=10,firstCounts={'GOOD':10,'MINOR':0,'POOR':0},twoPct='100%',twoN=3,twoCounts={'GOOD':3,'MINOR':0,'POOR':0}),
+            'makenna-whitaker': dict(decisionPct='86%',decisionN=18,decisionCounts={'GOOD':15,'MINOR':1,'POOR':2,'NOT_SCORED':9},firstPct='71%',firstN=7,firstCounts={'GOOD':5,'MINOR':0,'POOR':2},twoPct='100%',twoN=3,twoCounts={'GOOD':3,'MINOR':0,'POOR':0}),
+            'maleah-pena': dict(decisionPct='72%',decisionN=18,decisionCounts={'GOOD':12,'MINOR':2,'POOR':4,'NOT_SCORED':3},firstPct='50%',firstN=6,firstCounts={'GOOD':3,'MINOR':0,'POOR':3},twoPct='100%',twoN=3,twoCounts={'GOOD':3,'MINOR':0,'POOR':0}),
+            'matti-hardy': dict(decisionPct='76%',decisionN=41,decisionCounts={'GOOD':30,'MINOR':2,'POOR':9,'NOT_SCORED':9},firstPct='44%',firstN=9,firstCounts={'GOOD':4,'MINOR':0,'POOR':5},twoPct='86%',twoN=7,twoCounts={'GOOD':6,'MINOR':0,'POOR':1}),
+            'megan-ryan': dict(decisionPct='87%',decisionN=19,decisionCounts={'GOOD':16,'MINOR':1,'POOR':2,'NOT_SCORED':12},firstPct='71%',firstN=7,firstCounts={'GOOD':5,'MINOR':0,'POOR':2},twoPct='100%',twoN=5,twoCounts={'GOOD':5,'MINOR':0,'POOR':0}),
+            'tayte-stepps': dict(decisionPct='62%',decisionN=13,decisionCounts={'GOOD':8,'MINOR':0,'POOR':5,'NOT_SCORED':21},firstPct='60%',firstN=5,firstCounts={'GOOD':3,'MINOR':0,'POOR':2},twoPct='50%',twoN=2,twoCounts={'GOOD':1,'MINOR':0,'POOR':1}),
+          }
+          for slug,vals in official.items():
+              players[slug]['h'].update(vals)
+
+          # Claire did not have a plate appearance in the five official games.
+          ch=players['claire-jack']['h']
+          ch.update(PA=0,AVG='—',OBP='—',Kpct='—',HHBpct='—',decisionPct='—%',decisionN=0,
+                    decisionCounts={'GOOD':0,'MINOR':0,'POOR':0,'NOT_SCORED':0},
+                    firstPct='—%',firstN=0,firstCounts={'GOOD':0,'MINOR':0,'POOR':0},
+                    twoPct='—%',twoN=0,twoCounts={'GOOD':0,'MINOR':0,'POOR':0},
+                    HHB=0,WEAK=0,battedBalls=0,avgOnHHB='—',avgOnWeak='—')
+
+          lines=src.splitlines()
+          start=assign.lineno-1; end=assign.end_lineno
+          lines[start:end]=['PLAYERS='+repr(players)]
+          p.write_text('\n'.join(lines)+'\n',encoding='utf-8')
+          PY
+
+          python scripts/inject_hotb_stats.py
+
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          for p in Path('.').glob('*/index.html'):
+              text=p.read_text(encoding='utf-8')
+              if 'Current Performance' not in text: continue
+              text=re.sub(r'<p class="data-note">.*?</p>', '<p class="data-note">Hitting metrics are calculated from the five official HotB games through Oct. 18, 2026; scrimmages are excluded.</p>', text, flags=re.S)
+              p.write_text(text,encoding='utf-8')
+          PY
+
+      - name: Commit official five-game Scout audit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/inject_hotb_stats.py */index.html
+          git diff --cached --check
+          git commit -m "Use five official games for Scout hitting analytics" || exit 0
+          git push
