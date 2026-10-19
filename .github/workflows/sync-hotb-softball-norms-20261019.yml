@@ -1,0 +1,67 @@
+name: Sync Scout corrected softball stats
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/sync-hotb-softball-norms-20261019.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply corrected official batting averages
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import ast,re
+
+          corrected={
+            'aniesa-rohleder': {'AVG':'.300'},
+            'maia-waddell': {'AVG':'.538','OBP':'.538'},
+            'tayte-stepps': {'AVG':'.500'},
+          }
+
+          # Keep the Scout source table correct for future refreshes.
+          p=Path('scripts/inject_hotb_stats.py')
+          src=p.read_text(encoding='utf-8')
+          tree=ast.parse(src)
+          node=next(n for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='PLAYERS' for t in n.targets))
+          players=ast.literal_eval(node.value)
+          for slug,vals in corrected.items():
+              players[slug]['h'].update(vals)
+          lines=src.splitlines()
+          lines[node.lineno-1:node.end_lineno]=['PLAYERS='+repr(players)]
+          p.write_text('\n'.join(lines)+'\n',encoding='utf-8')
+
+          # Update only the standard stat tiles affected by the softball-rule audit.
+          for slug,vals in corrected.items():
+              path=Path(slug)/'index.html'
+              text=path.read_text(encoding='utf-8')
+              for label,value in vals.items():
+                  pattern=rf'(<span[^>]*>{re.escape(label)}</span><strong>)[^<]*(</strong>)'
+                  text,n=re.subn(pattern,lambda m:m.group(1)+value+m.group(2),text,count=1)
+                  if n!=1:
+                      raise SystemExit(f'{slug}: could not update {label}')
+              path.write_text(text,encoding='utf-8')
+          PY
+      - name: Commit Scout corrections
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/inject_hotb_stats.py aniesa-rohleder/index.html maia-waddell/index.html tayte-stepps/index.html
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "No changes needed"
+          else
+            git commit -m "Sync Scout with corrected HotB softball stat rules"
+            git push
+          fi
