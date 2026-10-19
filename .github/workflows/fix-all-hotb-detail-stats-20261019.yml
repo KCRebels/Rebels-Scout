@@ -1,0 +1,75 @@
+name: Sync all Rebels Scout HotB detail stats
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/fix-all-hotb-detail-stats-20261019.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Sync all official HotB hitting fields
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import ast
+
+          updates = {
+            'aniesa-rohleder': {'PA':14,'AVG':'.273','OBP':'.429','Kpct':'21%','HHBpct':'12%','HHB':1,'WEAK':0,'battedBalls':8,'avgOnHHB':'.000','avgOnWeak':'—'},
+            'brooklyn-gering': {'PA':12,'AVG':'.444','OBP':'.583','Kpct':'25%','HHBpct':'50%','HHB':3,'WEAK':0,'battedBalls':6,'avgOnHHB':'1.000','avgOnWeak':'—'},
+            'brynna-peter': {'PA':12,'AVG':'.300','OBP':'.417','Kpct':'8%','HHBpct':'22%','HHB':2,'WEAK':1,'battedBalls':9,'avgOnHHB':'.500','avgOnWeak':'.000'},
+            'hailey-marsh': {'PA':14,'AVG':'.636','OBP':'.714','Kpct':'7%','HHBpct':'0%','HHB':0,'WEAK':0,'battedBalls':10,'avgOnHHB':'—','avgOnWeak':'—'},
+            'lakyn-farley': {'PA':11,'AVG':'.250','OBP':'.455','Kpct':'36%','HHBpct':'0%','HHB':0,'WEAK':0,'battedBalls':4,'avgOnHHB':'—','avgOnWeak':'—'},
+            'lydia-copeland': {'PA':9,'AVG':'.429','OBP':'.556','Kpct':'33%','HHBpct':'50%','HHB':2,'WEAK':0,'battedBalls':4,'avgOnHHB':'1.000','avgOnWeak':'—'},
+            'maia-waddell': {'PA':14,'AVG':'.500','OBP':'.500','Kpct':'0%','HHBpct':'7%','HHB':1,'WEAK':0,'battedBalls':14,'avgOnHHB':'1.000','avgOnWeak':'—'},
+            'makenna-whitaker': {'PA':10,'AVG':'.200','OBP':'.200','Kpct':'30%','HHBpct':'14%','HHB':1,'WEAK':1,'battedBalls':7,'avgOnHHB':'.000','avgOnWeak':'.000'},
+            'maleah-pena': {'PA':8,'AVG':'.250','OBP':'.250','Kpct':'0%','HHBpct':'25%','HHB':2,'WEAK':0,'battedBalls':8,'avgOnHHB':'.500','avgOnWeak':'—'},
+            'matti-hardy': {'PA':13,'AVG':'.545','OBP':'.615','Kpct':'8%','HHBpct':'30%','HHB':3,'WEAK':0,'battedBalls':10,'avgOnHHB':'1.000','avgOnWeak':'—'},
+            'megan-ryan': {'PA':11,'AVG':'.400','OBP':'.455','Kpct':'9%','HHBpct':'33%','HHB':3,'WEAK':1,'battedBalls':9,'avgOnHHB':'.667','avgOnWeak':'.000'},
+            'tayte-stepps': {'PA':10,'AVG':'.444','OBP':'.500','Kpct':'10%','HHBpct':'25%','HHB':2,'WEAK':0,'battedBalls':8,'avgOnHHB':'.500','avgOnWeak':'—'},
+          }
+
+          p=Path('scripts/inject_hotb_stats.py')
+          src=p.read_text(encoding='utf-8')
+          tree=ast.parse(src)
+          node=next(n for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='PLAYERS' for t in n.targets))
+          players=ast.literal_eval(node.value)
+          for slug,vals in updates.items():
+              players[slug]['h'].update(vals)
+          lines=src.splitlines()
+          lines[node.lineno-1:node.end_lineno]=['PLAYERS='+repr(players)]
+          p.write_text('\n'.join(lines)+'\n',encoding='utf-8')
+          PY
+          python scripts/inject_hotb_stats.py
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          for path in Path('.').glob('*/index.html'):
+              text=path.read_text(encoding='utf-8')
+              if 'HotB · <span data-hit="PA">' not in text:
+                  continue
+              text=re.sub(r'<p class="data-note">.*?</p>', lambda m: re.sub(r'Hitting metrics are calculated from .*?</p>', 'Hitting metrics are calculated from official HotB game data through Oct. 18, 2026; scrimmages are excluded from standard batting results.</p>', m.group(0), flags=re.S), text, flags=re.S)
+              path.write_text(text,encoding='utf-8')
+          PY
+      - name: Commit synchronized player pages
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/inject_hotb_stats.py */index.html
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo "No changes needed"
+          else
+            git commit -m "Sync all Rebels Scout HotB hitting details"
+            git push
+          fi
