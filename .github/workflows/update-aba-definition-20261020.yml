@@ -26,8 +26,8 @@ jobs:
                         'adjusts to protect the plate and compete once the count reaches two strikes. Because the '
                         'goal changes with the count, what qualifies as a good approach changes too.')
 
-          old="head('AT-BAT APPROACH','ABA')+'<div class=\"pc-aba-summary\">'"
-          new="head('AT-BAT APPROACH','ABA')+'<p>"+definition+"</p><div class=\"pc-aba-summary\">'"
+          anchor="aba:()=>head('AT-BAT APPROACH','ABA')+'"
+          replacement=anchor+'<p>'+definition+'</p>'
           changed=[]
           for p in Path('.').rglob('*'):
               if not p.is_file() or '.git' in p.parts or p.suffix.lower() not in {'.html','.py','.js'}:
@@ -36,8 +36,8 @@ jobs:
                   text=p.read_text(encoding='utf-8')
               except Exception:
                   continue
-              if old in text and definition not in text:
-                  p.write_text(text.replace(old,new),encoding='utf-8')
+              if anchor in text and definition not in text:
+                  p.write_text(text.replace(anchor,replacement),encoding='utf-8')
                   changed.append(str(p))
           print('Changed:', *changed, sep='\n')
           if not changed:
