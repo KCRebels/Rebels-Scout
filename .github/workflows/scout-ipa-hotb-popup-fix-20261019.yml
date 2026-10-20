@@ -1,0 +1,73 @@
+name: Scout IPA HotB popup fix
+on:
+  push:
+    paths:
+      - '.github/workflows/scout-ipa-hotb-popup-fix-20261019.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make Maia and Hailey IPA match HotB
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          players = {
+              'maia-waddell/index.html': '79%',
+              'hailey-marsh/index.html': '86%',
+          }
+          popup = (
+              "ipa:()=>head('PLAYER EVALUATION GUIDE','Impact Plate Appearance Percentage')+"
+              "'<p>Impact Plate Appearance Percentage is impactful plate appearances divided by total plate appearances. A plate appearance counts once when the hitter reaches base by hit, walk, hit-by-pitch, error, or fielder’s choice; produces or advances a run with RBI/RBA; records a successful sacrifice; or sees eight or more pitches. HHB alone does not make a plate appearance impactful.</p><p class=\"pc-note\">No color-grading ranges have been assigned to this metric.</p>'"
+          )
+
+          for filename, ipa_value in players.items():
+              p = Path(filename)
+              s = p.read_text()
+
+              # Normalize the third red hitting tile to IPA with the same value HotB uses.
+              tile_pat = re.compile(
+                  r'<div class="scout-hit-tile scout-hit-red" role="button" tabindex="0" aria-haspopup="dialog" data-metric="(?:hhb|ipa)"><span style="font-size:20px!important;line-height:1!important;white-space:nowrap!important">(?:HHB|IPA)</span><strong>[^<]+</strong></div>'
+              )
+              replacement = (
+                  '<div class="scout-hit-tile scout-hit-red" role="button" tabindex="0" aria-haspopup="dialog" data-metric="ipa">'
+                  '<span style="font-size:20px!important;line-height:1!important;white-space:nowrap!important">IPA</span>'
+                  f'<strong>{ipa_value}</strong></div>'
+              )
+              s, n = tile_pat.subn(replacement, s, count=1)
+              if n != 1:
+                  raise SystemExit(f'{filename}: IPA tile not found exactly once')
+
+              # Replace the old HHB/IPA popup entry with the exact HotB IPA definition/copy.
+              # This entry sits immediately before `};let prev;` in these Scout files.
+              popup_pat = re.compile(r"(?:hhb|ipa):\(\)=>head\(.*?\)\+'<div class=\\\"pc-hhb-grid\\\">'.*?<p class=\\\"pc-note\\\">.*?</p>'(?=\};let prev;)")
+              s2, n2 = popup_pat.subn(popup, s, count=1)
+              if n2 != 1:
+                  # Handle the already-converted popup from the prior IPA workflow.
+                  popup_pat2 = re.compile(r"ipa:\(\)=>head\(.*?\)\+.*?(?=\};let prev;)")
+                  s2, n2 = popup_pat2.subn(popup, s, count=1)
+              if n2 != 1:
+                  raise SystemExit(f'{filename}: popup entry not found exactly once')
+
+              p.write_text(s2)
+
+          # Guardrails: both pages must show IPA and HotB's popup title; neither may retain an HHB tile.
+          for filename, ipa_value in players.items():
+              s = Path(filename).read_text()
+              assert 'data-metric="ipa"' in s
+              assert '>IPA</span><strong>'+ipa_value+'</strong>' in s
+              assert "Impact Plate Appearance Percentage" in s
+              assert "PLAYER EVALUATION GUIDE" in s
+              assert 'data-metric="hhb"' not in s
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add maia-waddell/index.html hailey-marsh/index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Make Scout IPA match HotB for Maia and Hailey"
+          git push
