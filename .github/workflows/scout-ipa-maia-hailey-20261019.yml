@@ -1,0 +1,68 @@
+name: Scout IPA for Maia and Hailey
+on:
+  push:
+    paths:
+      - '.github/workflows/scout-ipa-maia-hailey-20261019.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace HHB with IPA for slap hitters
+        shell: python
+        run: |
+          from pathlib import Path
+
+          players = {
+              'maia-waddell/index.html': {'ipa':'79%','impact':'11','pa':'14','name':'Maia Waddell'},
+              'hailey-marsh/index.html': {'ipa':'86%','impact':'12','pa':'14','name':'Hailey Marsh'},
+          }
+
+          for path, info in players.items():
+              p = Path(path)
+              s = p.read_text()
+
+              # Hitting tile: use IPA instead of HHB.
+              old_tile_start = 'data-metric="hhb"><span style="font-size:20px!important;line-height:1!important;white-space:nowrap!important">HHB</span><strong>'
+              if old_tile_start not in s:
+                  raise SystemExit(f'HHB tile marker not found in {path}')
+              start = s.index(old_tile_start)
+              val_start = start + len(old_tile_start)
+              val_end = s.index('</strong>', val_start)
+              s = s[:start] + 'data-metric="ipa"><span style="font-size:20px!important;line-height:1!important;white-space:nowrap!important">IPA</span><strong>' + info['ipa'] + s[val_end:]
+
+              # Popup: replace the HHB content entry with an IPA explanation and matching value.
+              popup_start = "hhb:()=>head('CONTACT QUALITY','HHB')"
+              if popup_start not in s:
+                  raise SystemExit(f'HHB popup marker not found in {path}')
+              ps = s.index(popup_start)
+              pe = s.index("};let prev;", ps)
+              new_popup = (
+                  "ipa:()=>head('IMPACT PLATE APPEARANCE','IPA')+"
+                  "'<p>Impact Plate Appearance Percentage shows how often the hitter creates a productive result in a plate appearance.</p>' +"
+                  "'<h3>FORMULA</h3><p>Impact Plate Appearances ÷ Total Plate Appearances × 100</p>' +"
+                  "'<div class=\"pc-hhb-grid\">'+"
+                  f"[['IPA%','{info['ipa']}'],['IMPACT PA','{info['impact']}'],['TOTAL PA','{info['pa']}'],['ROLE','SLAPPER']].map(([l,v])=>'<div class=\"pc-hhb-stat\"><b>'+v+'</b><span>'+l+'</span></div>').join('')+"
+                  f"'</div><p class=\"pc-note\">Calculated from {info['name']}’s official HotB game data through October 18, 2026. IPA matches the metric used for slap hitters in HotB.</p>'"
+              )
+              s = s[:ps] + new_popup + s[pe:]
+
+              p.write_text(s)
+
+      - name: Verify Maia and Hailey Scout IPA
+        run: |
+          grep -q 'data-metric="ipa"' maia-waddell/index.html
+          grep -q '>IPA</span><strong>79%</strong>' maia-waddell/index.html
+          grep -q "ipa:()=>head('IMPACT PLATE APPEARANCE','IPA')" maia-waddell/index.html
+          grep -q 'data-metric="ipa"' hailey-marsh/index.html
+          grep -q '>IPA</span><strong>86%</strong>' hailey-marsh/index.html
+          grep -q "ipa:()=>head('IMPACT PLATE APPEARANCE','IPA')" hailey-marsh/index.html
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add maia-waddell/index.html hailey-marsh/index.html
+          git commit -m "Use IPA for Maia and Hailey Scout profiles"
+          git push
