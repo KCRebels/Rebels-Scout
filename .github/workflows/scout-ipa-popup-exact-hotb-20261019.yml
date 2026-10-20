@@ -1,0 +1,39 @@
+name: Scout IPA popup exact HotB
+on:
+  push:
+    paths:
+      - '.github/workflows/scout-ipa-popup-exact-hotb-20261019.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Match IPA popup copy to HotB
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          files = [Path('maia-waddell/index.html'), Path('hailey-marsh/index.html')]
+          replacement = "ipa:()=>head('','IMPACTFUL PLATE APPEARANCE')+'<p>Measures how often a hitter creates a positive offensive result during a plate appearance.</p><h3>FORMULA</h3><p>Impactful Plate Appearances ÷ Total Plate Appearances × 100</p><h3>AN IMPACTFUL PA INCLUDES</h3><ul><li>Reaches base — Hit, BB, HBP, Error, or FC</li><li>Produces or advances a run — RBI or RBA</li><li>Successful sacrifice</li><li>8+ pitch plate appearance</li></ul>'"
+          for path in files:
+              s = path.read_text()
+              start = s.index("ipa:()=>head(")
+              end = s.index("};let prev", start)
+              s = s[:start] + replacement + s[end:]
+              path.write_text(s)
+          PY
+      - name: Verify exact HotB IPA popup
+        run: |
+          grep -F "IMPACTFUL PLATE APPEARANCE" maia-waddell/index.html hailey-marsh/index.html
+          grep -F "Measures how often a hitter creates a positive offensive result during a plate appearance." maia-waddell/index.html hailey-marsh/index.html
+          grep -F "Produces or advances a run — RBI or RBA" maia-waddell/index.html hailey-marsh/index.html
+          grep -F "8+ pitch plate appearance" maia-waddell/index.html hailey-marsh/index.html
+          ! grep -F "ROLE','SLAPPER" maia-waddell/index.html hailey-marsh/index.html
+      - name: Commit
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add maia-waddell/index.html hailey-marsh/index.html
+          git commit -m "Match Maia and Hailey IPA popup to HotB" || exit 0
+          git push
