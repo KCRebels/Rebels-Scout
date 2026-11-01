@@ -1,0 +1,89 @@
+name: Update Scout stats through Nov 1, 2026
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/update-hotb-stats-20261101.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Update Scout from Nov 1 HotB official games
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import ast
+
+          p=Path('scripts/inject_hotb_stats.py')
+          src=p.read_text(encoding='utf-8')
+          tree=ast.parse(src)
+          assign=next(n for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='PLAYERS' for t in n.targets))
+          players=ast.literal_eval(assign.value)
+
+          updates={
+            'aniesa-rohleder': dict(PA=28,AVG='.409',OBP='.500',Kpct='18%',HHBpct='28%',HHB=5,WEAK=2,battedBalls=18,avgOnHHB='.400',avgOnWeak='.500'),
+            'brooklyn-gering': dict(PA=22,AVG='.471',OBP='.591',Kpct='18%',HHBpct='23%',HHB=3,WEAK=0,battedBalls=13,avgOnHHB='1.000',avgOnWeak='—'),
+            'brynna-peter': dict(PA=24,AVG='.273',OBP='.333',Kpct='8%',HHBpct='25%',HHB=5,WEAK=3,battedBalls=20,avgOnHHB='.800',avgOnWeak='.000'),
+            'claire-jack': dict(PA=8,AVG='.143',OBP='.250',Kpct='25%',HHBpct='60%',HHB=3,WEAK=0,battedBalls=5,avgOnHHB='.333',avgOnWeak='—'),
+            'hailey-marsh': dict(PA=29,AVG='.625',OBP='.690',Kpct='3%',HHBpct='0%',HHB=0,WEAK=0,battedBalls=23,avgOnHHB='—',avgOnWeak='—'),
+            'lakyn-farley': dict(PA=14,AVG='.200',OBP='.429',Kpct='36%',HHBpct='0%',HHB=0,WEAK=0,battedBalls=5,avgOnHHB='—',avgOnWeak='—'),
+            'lydia-copeland': dict(PA=18,AVG='.400',OBP='.500',Kpct='22%',HHBpct='45%',HHB=5,WEAK=1,battedBalls=11,avgOnHHB='.600',avgOnWeak='1.000'),
+            'maia-waddell': dict(PA=29,AVG='.519',OBP='.536',Kpct='0%',HHBpct='4%',HHB=1,WEAK=0,battedBalls=28,avgOnHHB='1.000',avgOnWeak='—'),
+            'makenna-whitaker': dict(PA=19,AVG='.278',OBP='.316',Kpct='16%',HHBpct='13%',HHB=2,WEAK=2,battedBalls=15,avgOnHHB='.500',avgOnWeak='.000'),
+            'maleah-pena': dict(PA=17,AVG='.312',OBP='.353',Kpct='0%',HHBpct='12%',HHB=2,WEAK=0,battedBalls=16,avgOnHHB='.500',avgOnWeak='—'),
+            'matti-hardy': dict(PA=25,AVG='.429',OBP='.520',Kpct='4%',HHBpct='25%',HHB=5,WEAK=0,battedBalls=20,avgOnHHB='.800',avgOnWeak='—'),
+            'megan-ryan': dict(PA=22,AVG='.381',OBP='.409',Kpct='9%',HHBpct='47%',HHB=9,WEAK=1,battedBalls=19,avgOnHHB='.556',avgOnWeak='.000'),
+            'tayte-stepps': dict(PA=22,AVG='.500',OBP='.500',Kpct='9%',HHBpct='32%',HHB=6,WEAK=0,battedBalls=19,avgOnHHB='.667',avgOnWeak='—'),
+          }
+          pitching={
+            'aniesa-rohleder': dict(IP='8.0',ERA='7.00',WHIP='2.88',KBB='2.33',OBA='.435',StrikePct='66%'),
+            'brooklyn-gering': dict(IP='6.1',ERA='9.95',WHIP='2.21',KBB='1.25',OBA='.333',StrikePct='62%'),
+            'lakyn-farley': dict(IP='6.0',ERA='9.33',WHIP='2.17',KBB='3.00',OBA='.400',StrikePct='66%'),
+            'makenna-whitaker': dict(IP='1.0',ERA='.00',WHIP='.00',KBB='—',OBA='.000',StrikePct='58%'),
+            'megan-ryan': dict(IP='4.0',ERA='1.75',WHIP='1.25',KBB='3.00',OBA='.250',StrikePct='65%'),
+          }
+          for slug,vals in updates.items():
+              players[slug]['h'].update(vals)
+          for slug,vals in pitching.items():
+              players[slug]['p']=vals
+
+          lines=src.splitlines()
+          for i,line in enumerate(lines):
+              if line.startswith("UPDATED="):
+                  lines[i]="UPDATED='Nov. 1, 2026'"
+                  break
+          start=assign.lineno-1; end=assign.end_lineno
+          lines[start:end]=['PLAYERS='+repr(players)]
+          p.write_text('\n'.join(lines)+'\n',encoding='utf-8')
+          PY
+
+          python scripts/inject_hotb_stats.py
+
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          for p in Path('.').glob('*/index.html'):
+              text=p.read_text(encoding='utf-8')
+              if 'Current Performance' not in text: continue
+              text=re.sub(r'<p class="data-note">.*?</p>', '<p class="data-note">Hitting metrics are calculated from the 10 official HotB games through Nov. 1, 2026; scrimmages are excluded.</p>', text, flags=re.S)
+              p.write_text(text,encoding='utf-8')
+          PY
+
+      - name: Verify and commit Scout stats
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/inject_hotb_stats.py */index.html
+          git diff --cached --check
+          git commit -m "Update Scout stats through Nov 1 official games" || exit 0
+          git push
