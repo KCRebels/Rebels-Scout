@@ -103,7 +103,7 @@ img,video,iframe{max-width:100%}
   const read=k=>parse(fields[k]);
   if(read('playerName')!=='Aniesa Rohleder'||read('source')!=='HotB'||read('status')!=='published'||!(read('PA')>0))throw new Error('Unverified public stats');
   const vals={AVG:read('AVG'),OBP:read('OBP'),'K%':read('kPct'),hhb:read('hhbPct'),decision:read('decisionPct')};
-  const put=(el,value)=>{if(el&&value!==null&&Number.isFinite(Number(value))){const strong=el.querySelector('strong');if(strong)strong.textContent=value}};
+  const put=(el,value)=>{if(el&&value!==null&&value!==undefined&&String(value)!=='NaN'){const strong=el.querySelector('strong');if(strong)strong.textContent=String(value)}};
   put(tiles.AVG,vals.AVG===null?null:fmtAvg(vals.AVG));
   put(tiles.OBP,vals.OBP===null?null:fmtAvg(vals.OBP));
   put(tiles['K%'],vals['K%']===null?null:pct(vals['K%']));
