@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "player": "Aniesa Rohleder",
+  "source": "Rebels Scout",
+  "verifiedDate": "2026-09-25",
+  "measurements": [
+    {
+      "type": "Broad Jump",
+      "value": 62,
+      "unit": "in"
+    },
+    {
+      "type": "Home to First",
+      "value": 3.46,
+      "unit": "sec"
+    },
+    {
+      "type": "Fastball",
+      "value": 55,
+      "unit": "mph"
+    },
+    {
+      "type": "Changeup",
+      "value": 41,
+      "unit": "mph"
+    },
+    {
+      "type": "Exit Velocity",
+      "value": 62,
+      "unit": "mph"
+    },
+    {
+      "type": "Overhand Throw",
+      "value": 54,
+      "unit": "mph"
+    }
+  ]
+}
