@@ -85,6 +85,25 @@
    const status=document.querySelector('.performance-head .live-status');if(status)status.textContent='Historical snapshot — no current HotB game statistics';
    if(note)note.textContent='Historical hitting figures; no current-season aggregate has yet been published by HotB.';
   }
+  // Pitching numbers are coach-managed/imported inside HotB. When those
+  // values exist they replace the old static Scout GameChanger figures.
+  const pitchingBlock=Array.from(document.querySelectorAll('.sport-block')).find(b=>b.querySelector('.sport-title h3')?.textContent?.trim()==='Pitching');
+  if(pitchingBlock){
+   const p=d.pitching&&typeof d.pitching==='object'?d.pitching:{};
+   const keys=Object.keys(p);
+   const pitchTitle=pitchingBlock.querySelector('.sport-title span');
+   if(keys.length){
+    for(const card of pitchingBlock.querySelectorAll('.stat')){
+     const label=card.querySelector('span')?.textContent?.trim();
+     const out=card.querySelector('strong');
+     if(label&&out&&Object.prototype.hasOwnProperty.call(p,label))out.textContent=String(p[label]);
+     else if(out)out.textContent='—';
+    }
+    if(pitchTitle)pitchTitle.textContent='GameChanger · published through HotB';
+   }else{
+    if(pitchTitle)pitchTitle.textContent='GameChanger · historical snapshot (not synced)';
+   }
+  }
   if(athleticArticle){
    const bests=d.athleticBests&&typeof d.athleticBests==='object'?d.athleticBests:{};
    const names=Object.keys(bests).filter(type=>Number.isFinite(bests[type]?.value));
