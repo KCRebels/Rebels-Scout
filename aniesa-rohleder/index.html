@@ -93,7 +93,8 @@ img,video,iframe{max-width:100%}
  const fmtAvg=n=>Number(n).toFixed(3).replace(/^0/,'');
  const pct=n=>Math.round(Number(n)*100)+'%';
  const tiles=Object.fromEntries(Array.from(document.querySelectorAll('.scout-hit-tile[data-metric],.scout-hit-tile')).map(el=>[el.dataset.metric||el.querySelector('span')?.textContent?.trim()?.toUpperCase(),el]));
- const hittingHeader=document.querySelector('.sport-block .sport-title span');
+ const hittingBlock=Array.from(document.querySelectorAll('.sport-block')).find(block=>block.querySelector('.sport-title h3')?.textContent.trim()==='Hitting');
+ const hittingHeader=hittingBlock?.querySelector('.sport-title span');
  const note=document.querySelector('.data-note');
  try{
   const response=await fetch(url,{cache:'no-store'});
