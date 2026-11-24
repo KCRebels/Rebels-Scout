@@ -44,23 +44,42 @@
    const pa=hittingBlock?.querySelector('[data-hit="PA"]');if(pa)pa.textContent=String(d.PA);
    stat('decision',labeled(d.decisionPct));
    stat('hhb',labeled(d.hhbPct));
+   const aba=hittingBlock?.querySelector('[data-metric="aba"]');
+   if(aba){
+    const first=labeled(d.abaFirstPct),two=labeled(d.abaTwoPct);
+    if(first!==null||two!==null){
+     const strong=aba.querySelector('strong');
+     if(strong){strong.textContent='';const span=document.createElement('span');span.style.fontSize='.7em';span.append(document.createTextNode('1P '+(first||'—')),document.createElement('br'),document.createTextNode('2K '+(two||'—')));strong.appendChild(span)}
+    }else{
+     const label=aba.querySelector('span');if(label)label.textContent='ABA (Historical)';
+    }
+   }
    for(const [key,formatted] of [['AVG',avg(d.AVG)],['OBP',avg(d.OBP)],['K%',labeled(d.kPct)]]){
     const tile=Array.from(hittingBlock?.querySelectorAll('.scout-hit-tile')||[]).find(e=>e.querySelector('span')?.textContent?.trim()===key);
     if(tile?.querySelector('strong')&&formatted!==null)tile.querySelector('strong').textContent=formatted;
    }
    const status=document.querySelector('.performance-head .live-status');if(status)status.textContent='HotB published · '+stamp;
    const asof=document.querySelector('.performance-head .asof');if(asof)asof.childNodes.forEach(n=>{if(n.nodeType===Node.TEXT_NODE)n.textContent='';});
-   if(note)note.textContent='Current HotB hitting statistics · '+d.season+' · published '+stamp+'. First-pitch and two-strike ABA tiles remain historical until their HotB calculations are included in the public feed.';
-   const aba=hittingBlock?.querySelector('[data-metric="aba"]');
-   if(aba&&!aba.dataset.historicalLabel){
-    const label=aba.querySelector('span');if(label)label.textContent='ABA (Historical)';
-    aba.dataset.historicalLabel='true';
-   }
-   // Old Oct. 18 modal breakdowns do not describe the published totals.
-   for(const key of ['decision','hhb']){
+   const asofDate=d.statsAsOf?new Date(d.statsAsOf):null;
+   const gameThrough=asofDate&&!Number.isNaN(asofDate.valueOf())?' · Games through '+asofDate.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'';
+   if(note)note.textContent='HotB verified public hitting totals · '+d.season+gameThrough+' · published '+stamp+'. Scrimmages excluded.';
+   // Intercept historical pitch-breakdown popups; use only the matching HotB
+   // published breakdown or a clear current-total message.
+   for(const key of ['decision','aba','hhb']){
     const tile=hittingBlock?.querySelector('[data-metric="'+key+'"]');if(!tile)continue;
-    tile.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();alert('Current HotB total. Historical pitch-level detail is not part of the public feed.');},true);
-    tile.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopImmediatePropagation();alert('Current HotB total. Historical pitch-level detail is not part of the public feed.')}},true);
+    const details=()=>{
+     const pct=n=>labeled(n)||'Not available';
+     if(key==='decision'){
+      const b=d.decisionBreakdown;return b?'Decision Quality '+pct(d.decisionPct)+' · '+b.attempts+' scored decisions\\nGood '+b.GOOD+' · Minor '+b.MINOR+' · Poor '+b.POOR+' · Not scored '+b.NOT_SCORED:'Decision Quality '+pct(d.decisionPct)+' · No detailed HotB breakdown published';
+     }
+     if(key==='aba'){
+      const b1=d.abaFirstBreakdown,b2=d.abaTwoBreakdown;
+      return 'First-pitch ABA '+pct(d.abaFirstPct)+(b1?' · '+b1.n+' scored ('+b1.GOOD+' good, '+b1.MINOR+' minor, '+b1.POOR+' poor)':'')+'\\nTwo-strike ABA '+pct(d.abaTwoPct)+(b2?' · '+b2.n+' scored ('+b2.GOOD+' good, '+b2.MINOR+' minor, '+b2.POOR+' poor)':'');
+     }
+     return 'Hard-hit-ball percentage '+pct(d.hhbPct)+' · Calculated by HotB for the published season.';
+    };
+    tile.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();alert(details());},true);
+    tile.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopImmediatePropagation();alert(details())}},true);
    }
   }else{
    const status=document.querySelector('.performance-head .live-status');if(status)status.textContent='Historical snapshot — no current HotB game statistics';
