@@ -124,7 +124,7 @@
      value.textContent=type==='Home to First'||type==='Pop Time'?n.toFixed(2)+' sec':type==='Broad Jump'?String(n):n+' mph';
      const verified=document.createElement('span');verified.className='verified-date';
      const date=new Date(rec.date+'T12:00:00');
-     verified.textContent=rec.date&&!Number.isNaN(date.valueOf())?'Recorded '+date.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'Recorded in HotB';
+     verified.textContent=(slug==='brooklyn-gering'&&rec.source==='Rebels Scout'&&rec.date==='2026-08-01')?'Recorded Aug 2026':(rec.date&&!Number.isNaN(date.valueOf())?'Recorded '+date.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'Recorded in HotB');
      tile.append(title,value,verified);grid.appendChild(tile);
     }
     athleticArticle.appendChild(grid);
